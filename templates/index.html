@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple URL Shortener</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #eef2f7; }
+        .container { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; width: 100%; max-width: 450px; }
+        h1 { color: #333; margin-bottom: 1.5rem; }
+        input[type="url"] { padding: 0.75rem; width: 70%; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
+        button { padding: 0.75rem 1.5rem; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 1.5rem; padding: 1rem; background: #d4edda; color: #155724; border-radius: 6px; border: 1px solid #c3e6cb; }
+        .result a { color: #155724; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>URL Shortener</h1>
+        <form method="POST">
+            <input type="url" name="url" placeholder="Paste a long URL" required>
+            <button type="submit">Shorten</button>
+        </form>
+        {% if short_url %}
+        <div class="result">
+            <p>Short URL: <a href="{{ short_url }}" target="_blank">{{ short_url }}</a></p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
