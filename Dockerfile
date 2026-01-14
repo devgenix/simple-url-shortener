@@ -1,7 +1,11 @@
 FROM python:3.9-slim
+
 WORKDIR /app
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt gunicorn
+
 COPY . .
-EXPOSE 5000
-CMD ["python", "app.py"]
+
+# Run with gunicorn for production
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]

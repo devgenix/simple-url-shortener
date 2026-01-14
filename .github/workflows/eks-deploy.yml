@@ -1,16 +1,17 @@
-name: Deploy to EKS
+name: Deploy to Amazon EKS
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
 
 env:
-  AWS_REGION: us-east-1
+  AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: simple-url-shortener
-  EKS_CLUSTER_NAME: my-eks-cluster
+  EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
 
 jobs:
   deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -38,12 +39,12 @@ jobs:
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
     - name: Update kubeconfig
-      run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+      run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
 
     - name: Deploy to EKS
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        sed -i "s|\${ECR_REPOSITORY}:\${IMAGE_TAG}|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" k8s/deployment.yaml
-        kubectl apply -f k8s/deployment.yaml
+        # Replace variables in k8s manifest
+        envsubst < k8s/deployment.yaml | kubectl apply -f -

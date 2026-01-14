@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: url-shortener
+  labels:
+    app: url-shortener
 spec:
   replicas: 2
   selector:
@@ -16,7 +18,14 @@ spec:
       - name: url-shortener
         image: ${ECR_REPOSITORY}:${IMAGE_TAG}
         ports:
-        - containerPort: 5000
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -29,4 +38,4 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 5000
+      targetPort: 8080
