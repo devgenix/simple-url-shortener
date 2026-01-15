@@ -4,6 +4,6 @@ build:
   commands:
     - pip install -r requirements.txt
 run:
-  command: gunicorn app:app --bind 0.0.0.0:8080
+  command: python app.py
   network:
-    port: 8080
+    port: "5000"
