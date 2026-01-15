@@ -1,44 +1,35 @@
-from flask import Flask, request, redirect, render_template
-import string
-import random
+import redis
 import os
+from flask import Flask, request, redirect, render_template
 
 app = Flask(__name__)
 
-# Dictionary to store short URLs and their corresponding long URLs
-url_mapping = {}
+# Use environment variable for Redis host, default to localhost for local dev
+redis_host = os.getenv('REDIS_HOST', 'localhost')
+r = redis.Redis(host=redis_host, port=6379, db=0)
 
-def generate_short_id(length=6):
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    if request.method == 'POST':
-        long_url = request.form.get('long_url')
-        if not long_url:
-            return "Please provide a URL", 400
-        
-        short_id = generate_short_id()
-        url_mapping[short_id] = long_url
-        
-        short_url = request.host_url + short_id
-        return render_template('index.html', short_url=short_url)
-    
     return render_template('index.html')
 
-@app.route('/health')
-def health_check():
-    return {"status": "healthy"}, 200
+@app.route('/shorten', methods=['POST'])
+def shorten():
+    url = request.form['url']
+    if not url:
+        return redirect('/')
+    
+    import hashlib
+    short_id = hashlib.md5(url.encode()).hexdigest()[:6]
+    r.set(short_id, url)
+    
+    return render_template('index.html', short_url=f"{request.host_url}{short_id}")
 
 @app.route('/<short_id>')
-def redirect_to_url(short_id):
-    long_url = url_mapping.get(short_id)
-    if long_url:
-        return redirect(long_url)
-    else:
-        return "URL not found", 404
+def resolve(short_id):
+    url = r.get(short_id)
+    if url:
+        return redirect(url.decode())
+    return "URL not found", 404
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=5000)
